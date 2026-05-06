@@ -1,26 +1,48 @@
-from transformers import pipeline
-import gradio as gr
+import requests
+import os
 import json
 
-# --- Models ---
-summarizer = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")
-generator = pipeline("text-generation", model="gpt2")
+# --- HuggingFace API Config ---
+
+HF_API_KEY = os.getenv("HF_API_KEY")
+
+SUMMARIZE_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-cnn"
+GENERATOR_URL = "https://api-inference.huggingface.co/models/gpt2"
+
+headers = {
+    "Authorization": f"Bearer {HF_API_KEY}"
+}
+
+# --- Helper Function ---
+def query_api(url, payload):
+    response = requests.post(url, headers=headers, json=payload)
+    data = response.json()
+
+    if isinstance(data, dict) and data.get("error"):
+        return f"Error: {data['error']}"
+
+    return data
+
 
 # --- Tools ---
 
 def summarize(text):
-    result = summarizer(text, max_length=120, min_length=30, do_sample=False)
+    text = text[:1000]  # temporary limit length
+    result = query_api(SUMMARIZE_URL, {"inputs": text})
     return result[0]["summary_text"]
+
 
 def explain(text):
     prompt = f"Explain this clearly:\n{text}"
-    result = generator(prompt, max_length=120)
+    result = query_api(GENERATOR_URL, {"inputs": prompt})
     return result[0]["generated_text"]
+
 
 def generate_questions(text):
     prompt = f"Generate 3 study questions:\n{text}"
-    result = generator(prompt, max_length=120)
+    result = query_api(GENERATOR_URL, {"inputs": prompt})
     return result[0]["generated_text"]
+
 
 # --- Tool Registry ---
 TOOLS = {
@@ -29,53 +51,42 @@ TOOLS = {
     "questions": generate_questions
 }
 
-# --- Agent Brain (LLM decides) ---
+
+# --- Agent Brain ---
 def decide_tool(user_input):
     prompt = f"""
-    You are an AI agent.
+You are an AI agent.
 
-    Available tools:
-    - summarize: summarize text
-    - explain: explain text simply
-    - questions: generate study questions
+Available tools:
+- summarize
+- explain
+- questions
 
-    Decide which tool to use.
+Respond ONLY in JSON:
+{{"tool": "summarize"}}
 
-    Respond ONLY in JSON format like:
-    {{"tool": "summarize"}}
+User input:
+{user_input}
+"""
 
-    User input:
-    {user_input}
-    """
-
-    result = generator(prompt, max_length=100)
-    output = result[0]["generated_text"]
+    result = query_api(GENERATOR_URL, {"inputs": prompt})
 
     try:
+        output = result[0]["generated_text"]
         json_start = output.find("{")
         json_data = json.loads(output[json_start:])
-        return json_data["tool"]
+        return json_data.get("tool", "summarize")
     except:
         return "summarize"
+
 
 # --- Main Agent ---
 def agent(user_input):
     tool_name = decide_tool(user_input)
 
     if tool_name not in TOOLS:
-        return " Unknown tool"
+        return "Unknown tool"
 
     result = TOOLS[tool_name](user_input)
 
-    return f" Tool used: {tool_name}\n\n{result}"
-
-# --- UI ---
-interface = gr.Interface(
-    fn=agent,
-    inputs=gr.Textbox(lines=10),
-    outputs="text",
-    title="AI Agent Pro",
-    description="LLM-powered agent that selects tools dynamically"
-)
-
-# interface.launch()
+    return f"Tool used: {tool_name}\n\n{result}"
