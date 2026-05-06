@@ -18,8 +18,9 @@ def query_api(url, payload):
     response = requests.post(url, headers=headers, json=payload)
     data = response.json()
 
+    # handle API errors
     if isinstance(data, dict) and data.get("error"):
-        return f"Error: {data['error']}"
+        return {"error": data["error"]}
 
     return data
 
@@ -27,20 +28,32 @@ def query_api(url, payload):
 # --- Tools ---
 
 def summarize(text):
-    text = text[:1000]  # temporary limit length
+    text = text[:1000]
     result = query_api(SUMMARIZE_URL, {"inputs": text})
+
+    if "error" in result:
+        return f"Error: {result['error']}"
+
     return result[0]["summary_text"]
 
 
 def explain(text):
     prompt = f"Explain this clearly:\n{text}"
     result = query_api(GENERATOR_URL, {"inputs": prompt})
+
+    if "error" in result:
+        return f"Error: {result['error']}"
+
     return result[0]["generated_text"]
 
 
 def generate_questions(text):
     prompt = f"Generate 3 study questions:\n{text}"
     result = query_api(GENERATOR_URL, {"inputs": prompt})
+
+    if "error" in result:
+        return f"Error: {result['error']}"
+
     return result[0]["generated_text"]
 
 
@@ -56,24 +69,24 @@ TOOLS = {
 def decide_tool(user_input):
     text = user_input.lower()
 
-    # --- Rules ---
-    if "summary" in text or "summarize" in text:
+    # --- Rules (fast routing) ---
+    if "summary" in text or "summarize" in text or "تلخيص" in text:
         return "summarize"
 
-    if "explain" in text:
+    if "explain" in text or "اشرح" in text:
         return "explain"
 
-    if "question" in text:
+    if "question" in text or "أسئلة" in text:
         return "questions"
 
-    # --- fallback to AI ---
+    # --- AI fallback ---
     prompt = f"""
 Choose ONE tool:
 - summarize
 - explain
 - questions
 
-Respond JSON:
+Respond ONLY JSON:
 {{"tool": "summarize"}}
 
 User:
@@ -91,13 +104,23 @@ User:
         return "summarize"
 
 
-# --- Main Agent ---
+# --- Main Agent (FINAL OUTPUT FORMAT) ---
 def agent(user_input):
     tool_name = decide_tool(user_input)
 
     if tool_name not in TOOLS:
-        return "Unknown tool"
+        return {
+            "success": False,
+            "tool": "unknown",
+            "result": "Unknown tool selected",
+            "input_length": len(user_input)
+        }
 
     result = TOOLS[tool_name](user_input)
 
-    return f"Tool used: {tool_name}\n\n{result}"
+    return {
+        "success": True,
+        "tool": tool_name,
+        "result": result,
+        "input_length": len(user_input)
+    }
