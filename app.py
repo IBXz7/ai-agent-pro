@@ -54,19 +54,30 @@ TOOLS = {
 
 # --- Agent Brain ---
 def decide_tool(user_input):
-    prompt = f"""
-You are an AI agent.
+    text = user_input.lower()
 
-Available tools:
+    # --- Rules ---
+    if "summary" in text or "summarize" in text:
+        return "summarize"
+
+    if "explain" in text:
+        return "explain"
+
+    if "question" in text:
+        return "questions"
+
+    # --- fallback to AI ---
+    prompt = f"""
+Choose ONE tool:
 - summarize
 - explain
 - questions
 
-Respond ONLY in JSON:
+Respond JSON:
 {{"tool": "summarize"}}
 
-User input:
-{user_input}
+User:
+{text}
 """
 
     result = query_api(GENERATOR_URL, {"inputs": prompt})
