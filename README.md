@@ -125,12 +125,15 @@ Environment variables for API keys
 
 ## 🚀 Future improvements planned:
 
-🧠 Smarter tool routing (LLM-based decision making)
-💾 Persistent chat memory (database integration)
-⚡ Streaming responses (real-time typing effect)
-🔐 User authentication system
-🎨 Improved UI/UX (chat bubbles + dark mode)
-👨‍💻 Author
+- 🧠 Smarter tool routing (LLM-based decision making)
+- 💾 Persistent chat memory (database integration)
+- ⚡ Streaming responses (real-time typing effect)
+- 🔐 User authentication system
+- 🎨 Improved UI/UX (chat bubbles + dark mode)
+
+---
+
+## 👨‍💻 Author
 
 Developed by Omar Almutairi
 
