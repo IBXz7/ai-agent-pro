@@ -33,6 +33,14 @@ def ask_llm(prompt):
 
         data = response.json()
 
+        
+        if "error" in data:
+            return f"OpenRouter Error: {data['error']}"
+
+        
+        if "choices" not in data:
+            return f"Unexpected response: {data}"
+
         return data["choices"][0]["message"]["content"]
 
     except Exception as e:
