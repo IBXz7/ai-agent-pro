@@ -1,45 +1,40 @@
-import gradio as gr
+import streamlit as st
 import requests
-import os
 
-API_URL = "https://ai-agent-pro.onrender.com/agent"
+API_URL = "https://ai-agent-pro.onrender.com/chat"
 
+st.set_page_config(page_title="AI Chat Bot", page_icon="💬")
 
-def call_agent(user_input):
-    try:
-        response = requests.post(
-            API_URL,
-            json={"text": user_input},
-            timeout=60
-        )
+st.title("💬 AI Chat Bot")
 
-        data = response.json()
-
-        tool = data.get("tool", "unknown")
-        result = data.get("result", "No result")
-
-        return f"""
-🧠 Tool Used: {tool}
-
-✨ Result:
-{result}
-"""
-
-    except Exception as e:
-        return f"Error: {str(e)}"
+# --- session memory ---
+if "history" not in st.session_state:
+    st.session_state.history = []
 
 
-demo = gr.Interface(
-    fn=call_agent,
-    inputs=gr.Textbox(lines=8),
-    outputs="text",
-    title="AI Agent Pro",
-    description="HuggingFace + FastAPI AI Agent"
-)
+# --- input ---
+user_input = st.text_input("Type your message:")
+
+# --- send button ---
+if st.button("Send"):
+
+    if user_input:
+
+        response = requests.post(API_URL, json={
+            "message": user_input,
+            "history": st.session_state.history
+        }).json()
+
+        ai_response = response["response"]
+
+        st.session_state.history.append({
+            "user": user_input,
+            "ai": ai_response
+        })
 
 
-if __name__ == "__main__":
-    demo.launch(
-        server_name="0.0.0.0",
-        server_port=int(os.environ.get("PORT", 10000))
-    )
+# --- chat display ---
+for chat in st.session_state.history:
+    st.markdown(f"**🧑 You:** {chat['user']}")
+    st.markdown(f"**🤖 AI:** {chat['ai']}")
+    st.markdown("---")
