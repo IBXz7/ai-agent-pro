@@ -2,7 +2,7 @@ import gradio as gr
 import requests
 import os
 
-API_URL = "https://your-api.onrender.com/agent"
+API_URL = "https://ai-agent-pro.onrender.com/agent"
 
 
 def call_agent(user_input):
