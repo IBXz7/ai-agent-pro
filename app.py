@@ -15,7 +15,9 @@ headers = {
 
 # --- Safe API Call (FIXED + ROBUST) ---
 def query_api(url, payload):
-    for _ in range(3):  # retry system
+    last_error = None  # 🔥 مهم جدًا
+
+    for _ in range(3):
         try:
             response = requests.post(
                 url,
@@ -24,20 +26,19 @@ def query_api(url, payload):
                 timeout=60
             )
 
-            
             try:
                 data = response.json()
-            except:
+            except Exception as e:
+                last_error = f"JSON error: {str(e)}"
                 time.sleep(2)
                 continue
 
-            # HuggingFace loading / error handling
-            if isinstance(data, dict):
-                if "error" in data:
-                    if "loading" in data["error"].lower():
-                        time.sleep(3)
-                        continue
-                    return {"error": data["error"]}
+            if isinstance(data, dict) and "error" in data:
+                if "loading" in data["error"].lower():
+                    last_error = data["error"]
+                    time.sleep(3)
+                    continue
+                return {"error": data["error"]}
 
             return data
 
@@ -45,7 +46,9 @@ def query_api(url, payload):
             last_error = str(e)
             time.sleep(2)
 
-    return {"error": f"HuggingFace failed after retries: {last_error}"}
+    return {
+        "error": f"HuggingFace failed after retries: {last_error or 'Unknown error'}"
+    }
 
 
 # --- Tools ---
