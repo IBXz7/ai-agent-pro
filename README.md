@@ -53,7 +53,7 @@ AI Response
 
 --- 
 
-##📡 API Reference
+## 📡 API Reference
 POST /chat
 
 Send a message to the AI agent.
@@ -71,7 +71,7 @@ Response
 
 ---
 
-##⚙️ Tech Stack
+## ⚙️ Tech Stack
 Python 🐍
 FastAPI ⚡
 Streamlit 🎨
@@ -81,7 +81,7 @@ Requests HTTP Client
 
 ---
 
-##🔐 Environment Variables
+## 🔐 Environment Variables
 
 Required for deployment:
 
@@ -89,7 +89,7 @@ OPENROUTER_API_KEY=your_api_key_here
 
 ---
 
-##▶️ Local Setup for macOS
+## ▶️ Local Setup for macOS
 1. Clone repository
 git clone https://github.com/IBXz7/ai-agent-pro.git
 cd ai-agent-pro
@@ -102,7 +102,7 @@ streamlit run ui.py
 
 ---
 
-##☁️ Deployment
+## ☁️ Deployment
 
 This project is deployed on Render with:
 
