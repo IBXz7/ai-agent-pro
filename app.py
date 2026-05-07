@@ -20,7 +20,7 @@ def ask_llm(prompt):
             API_URL,
             headers=headers,
             json={
-                "model": "meta-llama/llama-3.2-3b-instruct:free",
+                "model": "deepseek/deepseek-chat-v3-0324:free",,
                 "messages": [
                     {
                         "role": "user",
