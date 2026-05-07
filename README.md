@@ -110,7 +110,7 @@ This project is deployed on Render with:
 - Runs FastAPI
 - Handles /chat endpoint
 - Connects to OpenRouter API
- 🟢 Frontend service (Streamlit)
+\n 🟢 Frontend service (Streamlit)
 - Runs Streamlit UI
 - Sends requests to backend API
 - Displays chat interface
