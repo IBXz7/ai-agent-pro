@@ -51,6 +51,8 @@ OpenRouter LLM
  ↓
 AI Response
 
+--- 
+
 ##📡 API Reference
 POST /chat
 
@@ -66,6 +68,9 @@ Response
   "success": true,
   "response": "Machine learning is a subset of AI that allows systems to learn from data..."
 }
+
+---
+
 ##⚙️ Tech Stack
 Python 🐍
 FastAPI ⚡
@@ -74,11 +79,15 @@ OpenRouter LLM 🧠
 Render ☁️
 Requests HTTP Client
 
+---
+
 ##🔐 Environment Variables
 
 Required for deployment:
 
 OPENROUTER_API_KEY=your_api_key_here
+
+---
 
 ##▶️ Local Setup for macOS
 1. Clone repository
@@ -90,16 +99,28 @@ pip install -r requirements.txt
 uvicorn api:app_api --reload
 4. Run frontend
 streamlit run ui.py
-☁️ Deployment
 
-##This project is deployed on Render with:
+---
 
-Backend service (FastAPI)
-Frontend service (Streamlit)
+##☁️ Deployment
+
+This project is deployed on Render with:
+
+🔵 Backend service (FastAPI)
+- Runs FastAPI
+- Handles /chat endpoint
+- Connects to OpenRouter API
+🟢 Frontend service (Streamlit)
+- Runs Streamlit UI
+- Sends requests to backend API
+- Displays chat interface
+
 Environment variables for API keys
-🚀 Roadmap
+ Roadmap
 
-Future improvements planned:
+---
+
+## 🚀 Future improvements planned:
 
 🧠 Smarter tool routing (LLM-based decision making)
 💾 Persistent chat memory (database integration)
