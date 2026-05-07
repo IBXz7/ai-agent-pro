@@ -106,11 +106,11 @@ streamlit run ui.py
 
 This project is deployed on Render with:
 
-🔵 Backend service (FastAPI)
+** 🔵 Backend service (FastAPI)
 - Runs FastAPI
 - Handles /chat endpoint
 - Connects to OpenRouter API
-🟢 Frontend service (Streamlit)
+** 🟢 Frontend service (Streamlit)
 - Runs Streamlit UI
 - Sends requests to backend API
 - Displays chat interface
