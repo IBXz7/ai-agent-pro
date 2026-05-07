@@ -3,7 +3,6 @@ import os
 import json
 
 # --- HuggingFace API Config ---
-
 HF_API_KEY = os.getenv("HF_API_KEY")
 
 SUMMARIZE_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-cnn"
@@ -14,7 +13,7 @@ headers = {
 }
 
 
-# --- Helper Function ---
+# --- Safe API Call ---
 def query_api(url, payload):
     try:
         response = requests.post(
@@ -24,7 +23,13 @@ def query_api(url, payload):
             timeout=60
         )
 
-        return response.json()
+        try:
+            return response.json()
+        except:
+            return {
+                "error": "Invalid JSON response",
+                "raw": response.text
+            }
 
     except Exception as e:
         return {"error": str(e)}
@@ -33,57 +38,34 @@ def query_api(url, payload):
 # --- Tools ---
 
 def summarize(text):
-    text = text[:1000]
+    result = query_api(SUMMARIZE_URL, {"inputs": text[:1000]})
 
-    result = query_api(
-        SUMMARIZE_URL,
-        {"inputs": text}
-    )
-
-    # handle API errors
-    if isinstance(result, dict) and result.get("error"):
+    if isinstance(result, dict) and "error" in result:
         return f"Error: {result['error']}"
 
-    return result[0].get(
-        "summary_text",
-        "No summary generated"
-    )
+    return result[0].get("summary_text", "No summary")
 
 
 def explain(text):
-    prompt = f"Explain this clearly:\n{text}"
+    prompt = f"Explain clearly:\n{text}"
 
-    result = query_api(
-        GENERATOR_URL,
-        {"inputs": prompt}
-    )
+    result = query_api(GENERATOR_URL, {"inputs": prompt})
 
-    # handle API errors
-    if isinstance(result, dict) and result.get("error"):
+    if isinstance(result, dict) and "error" in result:
         return f"Error: {result['error']}"
 
-    return result[0].get(
-        "generated_text",
-        "No explanation generated"
-    )
+    return result[0].get("generated_text", "No explanation")
 
 
 def generate_questions(text):
-    prompt = f"Generate 3 study questions:\n{text}"
+    prompt = f"Generate 3 questions:\n{text}"
 
-    result = query_api(
-        GENERATOR_URL,
-        {"inputs": prompt}
-    )
+    result = query_api(GENERATOR_URL, {"inputs": prompt})
 
-    # handle API errors
-    if isinstance(result, dict) and result.get("error"):
+    if isinstance(result, dict) and "error" in result:
         return f"Error: {result['error']}"
 
-    return result[0].get(
-        "generated_text",
-        "No questions generated"
-    )
+    return result[0].get("generated_text", "No questions")
 
 
 # --- Tool Registry ---
@@ -94,41 +76,39 @@ TOOLS = {
 }
 
 
-# --- Agent Brain ---
+# --- Tool Decision ---
 def decide_tool(user_input):
     text = user_input.lower()
 
-    # --- Fast Rules ---
     if "summary" in text or "summarize" in text:
         return "summarize"
 
     if "explain" in text:
         return "explain"
 
-    if "question" in text or "questions" in text:
+    if "question" in text:
         return "questions"
 
-    # --- Fallback ---
     return "summarize"
 
 
-# --- Main Agent ---
+# --- Agent ---
 def agent(user_input):
-    tool_name = decide_tool(user_input)
+    tool = decide_tool(user_input)
 
-    if tool_name not in TOOLS:
+    if tool not in TOOLS:
         return {
             "success": False,
             "tool": "unknown",
-            "result": "Unknown tool selected",
+            "result": "Unknown tool",
             "input_length": len(user_input)
         }
 
-    result = TOOLS[tool_name](user_input)
+    result = TOOLS[tool](user_input)
 
     return {
         "success": True,
-        "tool": tool_name,
+        "tool": tool,
         "result": result,
         "input_length": len(user_input)
     }
