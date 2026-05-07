@@ -40,43 +40,53 @@ It simulates a simplified ChatGPT-style experience with:
 
 ## 🏗️ System Architecture
 
-text id="arch_pro"
-User
- ↓
+```text
+id="arch_pro"
+    User
+     ↓
 Streamlit UI
- ↓
+     ↓
 FastAPI Backend
- ↓
+     ↓
 OpenRouter LLM
- ↓
-AI Response
-
+     ↓
+ AI Response
+```
 --- 
 
 ## 📡 API Reference
-POST /chat
+### POST `/chat`
 
 Send a message to the AI agent.
 
-Request
+### Request
+```json 
 {
   "message": "Explain machine learning",
   "history": []
 }
-Response
+```
+### Response
+
+```json
 {
   "success": true,
   "response": "Machine learning is a subset of AI that allows systems to learn from data..."
 }
-
+```
 ---
 
 ## ⚙️ Tech Stack
-Python 🐍
-FastAPI ⚡
-Streamlit 🎨
-OpenRouter LLM 🧠
-Render ☁️
+*Python* 🐍
+
+*FastAPI* ⚡
+
+*Streamlit* 🎨
+
+*OpenRouter LLM* 🧠
+
+*Render* ☁️
+
 Requests HTTP Client
 
 ---
@@ -84,27 +94,34 @@ Requests HTTP Client
 ## 🔐 Environment Variables
 
 Required for deployment:
-
+``` python 
 OPENROUTER_API_KEY=your_api_key_here
-
+```
 ---
 
 ## ▶️ Local Setup for macOS
 1. Clone repository
+```bash
 git clone https://github.com/IBXz7/ai-agent-pro.git
 cd ai-agent-pro
+```
 2. Install dependencies
+``` bash
 pip install -r requirements.txt
+```
 3. Run backend
+```bash
 uvicorn api:app_api --reload
+```
 4. Run frontend
+```
 streamlit run ui.py
-
+```
 ---
 
 ## ☁️ Deployment
 
-This project is deployed on Render with:
+*This project is deployed on Render with:*
 
  🔵 Backend service (FastAPI)
  
