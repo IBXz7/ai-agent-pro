@@ -20,7 +20,7 @@ def ask_llm(prompt):
             API_URL,
             headers=headers,
             json={
-                "model": "mistralai/mistral-7b-instruct:free",
+                "model": "openai/gpt-3.5-turbo",
                 "messages": [
                     {
                         "role": "user",
