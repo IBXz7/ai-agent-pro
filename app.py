@@ -13,48 +13,77 @@ headers = {
     "Authorization": f"Bearer {HF_API_KEY}"
 }
 
+
 # --- Helper Function ---
 def query_api(url, payload):
-    response = requests.post(url, headers=headers, json=payload)
-    data = response.json()
+    try:
+        response = requests.post(
+            url,
+            headers=headers,
+            json=payload,
+            timeout=60
+        )
 
-    # handle API errors
-    if isinstance(data, dict) and data.get("error"):
-        return {"error": data["error"]}
+        return response.json()
 
-    return data
+    except Exception as e:
+        return {"error": str(e)}
 
 
 # --- Tools ---
 
 def summarize(text):
     text = text[:1000]
-    result = query_api(SUMMARIZE_URL, {"inputs": text})
 
-    if "error" in result:
+    result = query_api(
+        SUMMARIZE_URL,
+        {"inputs": text}
+    )
+
+    # handle API errors
+    if isinstance(result, dict) and result.get("error"):
         return f"Error: {result['error']}"
 
-    return result[0]["summary_text"]
+    return result[0].get(
+        "summary_text",
+        "No summary generated"
+    )
 
 
 def explain(text):
     prompt = f"Explain this clearly:\n{text}"
-    result = query_api(GENERATOR_URL, {"inputs": prompt})
 
-    if "error" in result:
+    result = query_api(
+        GENERATOR_URL,
+        {"inputs": prompt}
+    )
+
+    # handle API errors
+    if isinstance(result, dict) and result.get("error"):
         return f"Error: {result['error']}"
 
-    return result[0]["generated_text"]
+    return result[0].get(
+        "generated_text",
+        "No explanation generated"
+    )
 
 
 def generate_questions(text):
     prompt = f"Generate 3 study questions:\n{text}"
-    result = query_api(GENERATOR_URL, {"inputs": prompt})
 
-    if "error" in result:
+    result = query_api(
+        GENERATOR_URL,
+        {"inputs": prompt}
+    )
+
+    # handle API errors
+    if isinstance(result, dict) and result.get("error"):
         return f"Error: {result['error']}"
 
-    return result[0]["generated_text"]
+    return result[0].get(
+        "generated_text",
+        "No questions generated"
+    )
 
 
 # --- Tool Registry ---
@@ -69,42 +98,21 @@ TOOLS = {
 def decide_tool(user_input):
     text = user_input.lower()
 
-    # --- Rules (fast routing) ---
-    if "summary" in text or "summarize" in text or "تلخيص" in text:
+    # --- Fast Rules ---
+    if "summary" in text or "summarize" in text:
         return "summarize"
 
-    if "explain" in text or "اشرح" in text:
+    if "explain" in text:
         return "explain"
 
-    if "question" in text or "أسئلة" in text:
+    if "question" in text or "questions" in text:
         return "questions"
 
-    # --- AI fallback ---
-    prompt = f"""
-Choose ONE tool:
-- summarize
-- explain
-- questions
-
-Respond ONLY JSON:
-{{"tool": "summarize"}}
-
-User:
-{text}
-"""
-
-    result = query_api(GENERATOR_URL, {"inputs": prompt})
-
-    try:
-        output = result[0]["generated_text"]
-        json_start = output.find("{")
-        json_data = json.loads(output[json_start:])
-        return json_data.get("tool", "summarize")
-    except:
-        return "summarize"
+    # --- Fallback ---
+    return "summarize"
 
 
-# --- Main Agent (FINAL OUTPUT FORMAT) ---
+# --- Main Agent ---
 def agent(user_input):
     tool_name = decide_tool(user_input)
 
